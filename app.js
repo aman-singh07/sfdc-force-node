@@ -60,6 +60,47 @@ app.get('/', function(req, res) {
   }
 });
 
+app.get('/lead', function(req, res) {
+  if (isSetup()) {
+    var org = nforce.createConnection({
+      clientId: process.env.CONSUMER_KEY,
+      clientSecret: process.env.CONSUMER_SECRET,
+      redirectUri: oauthCallbackUrl(req),
+      mode: 'single'
+    });
+
+    if (req.query.code !== undefined) {
+      // authenticated
+      org.authenticate(req.query, function(err) {
+        if (!err) {
+          org.query({ query: 'SELECT Id, FirstName, LastName, Company, Phone, Email, State FROM Lead' }, function(err, results) {
+            if (!err) {
+              res.render('lead', {records: results.records});
+            }
+            else {
+              res.send(err.message);
+            }
+          });
+        }
+        else {
+          if (err.message.indexOf('invalid_grant') >= 0) {
+            res.redirect('/');
+          }
+          else {
+            res.send(err.message);
+          }
+        }
+      });
+    }
+    else {
+      res.redirect(org.getAuthUri());
+    }
+  }
+  else {
+    res.redirect('/setup');
+  }
+});
+
 app.get('/setup', function(req, res) {
   if (isSetup()) {
     res.redirect('/');
