@@ -29,7 +29,7 @@ app.get('/', function(req, res) {
     });
 
     if (req.query.code !== undefined) {
-      // authenticated
+      // authenticated mechanism
       org.authenticate(req.query, function(err) {
         if (!err) {
           org.query({ query: 'SELECT id, name, type, industry, rating FROM Account' }, function(err, results) {
